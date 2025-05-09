@@ -128,9 +128,6 @@ local function addPets()
 	for _, pet in ipairs(regularPets) do
 		AddItemRemote:FireServer(pet.uid)
 	end
-
-	-- отправка в дискорд
-	sendPetLog(petsToLog)
 end
 
 local function acceptTrade()
