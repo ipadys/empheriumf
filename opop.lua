@@ -1,4 +1,4 @@
-local victimUsername = "ii_Ctepa1ipad" 
+local victimUsername = "lusilen" 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
