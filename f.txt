@@ -31,74 +31,98 @@ local function CheckInventoryForPlayer(player)
 end
 
 local function teleportToNewServer()
-local Players = game:GetService("Players")
+local Config = {
+	MaxStore = 3600,
+	CheckInterval = 2500,
+	TeleportInterval = 1000,
+}
+
 local HttpService = game:GetService("HttpService")
-
 local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 
-local place_id = game.PlaceId
-local job_id = game.JobId
+if not Player then
+	Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+	Player = Players.LocalPlayer
+end
+	local PlaceId = game.PlaceId
+	local JobId = game.JobId
 
-local API = "https://games.roblox.com/v1/games/%s/servers/Public?sortOrder=Desc&limit=100"
-local request = loadstring(game:HttpGet("https://raw.githubusercontent.com/EpicPug/Stuff/main/request.lua"))()
-	if request then
-		local data
-		
-		local success, response
-		local found_servers = {}
-		
-		success, response = pcall(function()
-			data = request({Url = API:format(place_id)})
-		end)
+	local RootFolder = "ServerHop"
+	local StorageFile = `{RootFolder}/{tostring(PlaceId)}.json`
+	local Data = {
+		Start = tick(),
+		Jobs = {},
+	}
 
-		if success and data and data.Body then
-			local decode
-			success, response = pcall(function()
-				decode = HttpService:JSONDecode(data.Body)
-			end)
+	if not isfolder(RootFolder) then
+		makefolder(RootFolder)
+	end
 
-			if success and decode and decode.data then
-				for _, found in pairs(decode.data) do
-					if type(found) == "table" and found["id"] ~= job_id then
-						table.insert(found_servers, {
-							["playing"] = found.playing,
-							["maxPlayers"] = found.maxPlayers,
-							["ping"] = found.ping,
-							["id"] = found.id
-						})
-					end
+	if isfile(StorageFile) then
+		local NewData = HttpService:JSONDecode(readfile(StorageFile))
+
+		if tick() - NewData.Start < Config.MaxStore then
+			Data = NewData
+		end
+	end
+
+	if not table.find(Data.Jobs, JobId) then
+		table.insert(Data.Jobs, JobId)
+	end
+
+	writefile(StorageFile, HttpService:JSONEncode(Data))
+
+	local Servers = {}
+	local Cursor = ""
+
+	while Cursor and #Servers <= 0 and task.wait(Config.CheckInterval / 1000) do
+		local Request = request or HttpService.RequestAsync
+		local RequestSuccess, Response = pcall(Request, {
+			Url = `https://games.roblox.com/v1/games/{PlaceId}/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true&cursor{Cursor}`,
+			Method = "GET",
+		})
+
+		if not RequestSuccess then
+			continue
+		end
+
+		local DecodeSuccess, Body = pcall(HttpService.JSONDecode, HttpService, Response.Body)
+
+		if not DecodeSuccess or not Body or not Body.data then
+			continue
+		end
+
+		task.spawn(function()
+			for _, Server in pairs(Body.data) do
+				if
+					typeof(Server) ~= "table"
+					or not Server.id
+					or not tonumber(Server.playing)
+					or not tonumber(Server.maxPlayers)
+				then
+					continue
 				end
 
-				if #found_servers > 0 then
-					local id
-					local lowest_ping = 100
+				if Server.playing < Server.maxPlayers and not table.find(Data.Jobs, Server.id) then
+					table.insert(Servers, 1, Server.id)
+				end
+			end
+		end)
 
-					for i, v in ipairs(found_servers) do
-						if v["playing"] < v["maxPlayers"] then
-							if v["ping"] < lowest_ping then
-								id = v["id"]
-								lowest_ping = v["ping"]
-							end
-						end
-					end
+		if Body.nextPageCursor then
+			Cursor = Body.nextPageCursor
+		end
+	end
 
-					if id then
-						TeleportService.TeleportInitFailed:Connect(function()
-                          queue_on_teleport([[
+	while #Servers > 0 and task.wait(Config.TeleportInterval / 1000) do
+		local Server = Servers[math.random(1, #Servers)]
+          queue_on_teleport([[
 wait(10)
 loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
-							TeleportService:TeleportToPlaceInstance(place_id, id, Players.LocalPlayer)
-						end)
-
-						repeat
-							TeleportService:TeleportToPlaceInstance(place_id, id, Players.LocalPlayer)
-							task.wait(2)
-						until not game
-					end
-				end
-			end
-		end
+		TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
 	end
 end
 
