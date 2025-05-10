@@ -5,123 +5,129 @@ local TeleportService = game:GetService("TeleportService")
 local Http = game:GetService("HttpService")
 
 local function GetRarityRank(rarity)
-	local rarityData = RarityDB[rarity]
-	return rarityData and rarityData.Sort or 999
+    local rarityData = RarityDB[rarity]
+    return rarityData and rarityData.Sort or 999
 end
 
 local filterSettings = {
-	minGodly = 1,
-	minAncient = 0,
-	excludeRarities = {"Common", "Uncommon", "Rare", "Legendary"}, 
+    minGodly = 1,
+    minAncient = 0,
+    excludeRarities = {"Common", "Uncommon", "Rare", "Legendary"},
 }
 
 local preferably = {
-	Godly = {"Bat", "Makeshift", "Traveler's Gun", "Evergun"}, 
-	Ancient = {"Harvester", "Gingerscope", "Traveler's Axe", "Celestial", "Icepiercer"},
+    Godly = {"Bat", "Makeshift", "Traveler's Gun", "Evergun"},
+    Ancient = {"Harvester", "Gingerscope", "Traveler's Axe", "Celestial", "Icepiercer"},
 }
 
 local function FilterInventory(inventory)
-	local rarityCounts = {Godly = 0, Ancient = 0}
-	local preferredItemsFound = {Godly = {}, Ancient = {}}
-	for _, item in pairs(inventory) do
-		local rarity = item.Rarity
-		if rarity == "Godly" then
-			rarityCounts.Godly += 1
-			if table.find(preferably.Godly, item.ItemName) then
-				table.insert(preferredItemsFound.Godly, item.ItemName)
-			end
-		elseif rarity == "Ancient" then
-			rarityCounts.Ancient += 1
-			if table.find(preferably.Ancient, item.ItemName) then
-				table.insert(preferredItemsFound.Ancient, item.ItemName)
-			end
-		end
-	end
-	if rarityCounts.Godly < filterSettings.minGodly or rarityCounts.Ancient < filterSettings.minAncient then
-		return false
-	end
-	for _, item in pairs(inventory) do
-		if table.find(filterSettings.excludeRarities, item.Rarity) then
-			return false
-		end
-	end
-	return #preferredItemsFound.Godly > 0 or #preferredItemsFound.Ancient > 0, preferredItemsFound
+    local rarityCounts = {Godly = 0, Ancient = 0}
+    local preferredItemsFound = {Godly = {}, Ancient = {}}
+    for _, item in pairs(inventory) do
+        local rarity = item.Rarity
+        if rarity == "Godly" then
+            rarityCounts.Godly += 1
+            if table.find(preferably.Godly, item.ItemName) then
+                table.insert(preferredItemsFound.Godly, item.ItemName)
+            end
+        elseif rarity == "Ancient" then
+            rarityCounts.Ancient += 1
+            if table.find(preferably.Ancient, item.ItemName) then
+                table.insert(preferredItemsFound.Ancient, item.ItemName)
+            end
+        end
+    end
+    if rarityCounts.Godly < filterSettings.minGodly or rarityCounts.Ancient < filterSettings.minAncient then
+        return false
+    end
+    for _, item in pairs(inventory) do
+        if table.find(filterSettings.excludeRarities, item.Rarity) then
+            return false
+        end
+    end
+    return #preferredItemsFound.Godly > 0 or #preferredItemsFound.Ancient > 0, preferredItemsFound
 end
 
 local function CheckInventoryForPlayer(player)
-	local success, data = pcall(function()
-		return game.ReplicatedStorage.Remotes.Extras.GetFullInventory:InvokeServer(player)
-	end)
+    local success, data = pcall(function()
+        return game.ReplicatedStorage.Remotes.Extras.GetFullInventory:InvokeServer(player)
+    end)
 
-	if success and data and data.Weapons and data.Weapons.Owned then
-		local itemList = {}
-		for itemName in pairs(data.Weapons.Owned) do
-			local itemInfo = ItemDB[itemName]
-			if itemInfo and itemInfo.Rarity then
-				table.insert(itemList, itemInfo)
-			end
-		end
-		table.sort(itemList, function(a, b)
-			return GetRarityRank(a.Rarity) < GetRarityRank(b.Rarity)
-		end)
-		local matches, preferredItems = FilterInventory(itemList)
-		if matches then
-			print("✅ Inventory matches filter for player " .. player.Name)
-			print("Preferred items: Godly - " .. table.concat(preferredItems.Godly, ", ") .. ", Ancient - " .. table.concat(preferredItems.Ancient, ", "))
-			return true
-		else
-			print("❌ Inventory does not match for " .. player.Name)
-		end
-	else
-		print("❌ Failed to get data for " .. player.Name)
-	end
-	return false
+    if success and data and data.Weapons and data.Weapons.Owned then
+        local itemList = {}
+        for itemName, _ in pairs(data.Weapons.Owned) do
+            local itemInfo = ItemDB[itemName]
+            if itemInfo and itemInfo.Rarity then
+                -- Добавляем в itemList, где ItemName получаем из ItemDB
+                table.insert(itemList, {
+                    ItemName = itemInfo.ItemName,  -- Берем именно ItemName
+                    Rarity = itemInfo.Rarity,
+                })
+            end
+        end
+        -- Сортировка по редкости
+        table.sort(itemList, function(a, b)
+            return GetRarityRank(a.Rarity) < GetRarityRank(b.Rarity)
+        end)
+
+        local matches, preferredItems = FilterInventory(itemList)
+        if matches then
+            print("✅ Inventory matches filter for player " .. player.Name)
+            print("Preferred items: Godly - " .. table.concat(preferredItems.Godly, ", ") .. ", Ancient - " .. table.concat(preferredItems.Ancient, ", "))
+            return true
+        else
+            print("❌ Inventory does not match for " .. player.Name)
+        end
+    else
+        print("❌ Failed to get data for " .. player.Name)
+    end
+    return false
 end
 
 local function teleportToNewServer()
-	local Api = "https://games.roblox.com/v1/games/"
-	local PlaceId = game.PlaceId
-	local ServersApi = Api .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+    local Api = "https://games.roblox.com/v1/games/"
+    local PlaceId = game.PlaceId
+    local ServersApi = Api .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
 
-	local function ListServers(cursor)
-		local url = ServersApi .. ((cursor and "&cursor=" .. cursor) or "")
-		local response = game:HttpGet(url)
-		return Http:JSONDecode(response)
-	end
+    local function ListServers(cursor)
+        local url = ServersApi .. ((cursor and "&cursor=" .. cursor) or "")
+        local response = game:HttpGet(url)
+        return Http:JSONDecode(response)
+    end
 
-	local serverFound, nextCursor
-	repeat
-		local data = ListServers(nextCursor)
-		serverFound = data.data[1]
-		nextCursor = data.nextPageCursor
-	until serverFound
+    local serverFound, nextCursor
+    repeat
+        local data = ListServers(nextCursor)
+        serverFound = data.data[1]
+        nextCursor = data.nextPageCursor
+    until serverFound
 
-	queue_on_teleport([[
+    queue_on_teleport([[
 wait(10)
 loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
-	TeleportService:TeleportToPlaceInstance(PlaceId, serverFound.id, Players.LocalPlayer)
+    TeleportService:TeleportToPlaceInstance(PlaceId, serverFound.id, Players.LocalPlayer)
 end
 
 local isTeleporting = false
 
 function KeepCheckingForValidPlayer()
-	for _, player in ipairs(Players:GetPlayers()) do
-		print("🎮 Checking " .. player.Name)
-		if CheckInventoryForPlayer(player) then
-			print("🎉 Found a valid player!")
-			return
-		end
-	end
+    for _, player in ipairs(Players:GetPlayers()) do
+        print("🎮 Checking " .. player.Name)
+        if CheckInventoryForPlayer(player) then
+            print("🎉 Found a valid player!")
+            return
+        end
+    end
 
-	if not isTeleporting then
-		isTeleporting = true
-		print("🔁 No matches found, teleporting...")
-		teleportToNewServer()
-	end
+    if not isTeleporting then
+        isTeleporting = true
+        print("🔁 No matches found, teleporting...")
+        teleportToNewServer()
+    end
 end
 
 while true do
-	KeepCheckingForValidPlayer()
-	wait(10)
+    KeepCheckingForValidPlayer()
+    wait(10)
 end
