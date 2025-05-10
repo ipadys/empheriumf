@@ -32,34 +32,28 @@ local function CheckInventoryForPlayer(player)
 end
 
 local function teleportToNewServer()
-    local Api = "https://games.roblox.com/v1/games/"
-    local PlaceId = game.PlaceId
-    local ServersApi = Api .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+	local Api = "https://games.roblox.com/v1/games/"
+	local PlaceId = game.PlaceId
+	local ServersApi = Api .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
 
-    local function ListServers(cursor)
-        local url = ServersApi .. ((cursor and "&cursor=" .. cursor) or "")
-        local response = game:HttpGet(url)
-        return Http:JSONDecode(response)
-    end
+	local function ListServers(cursor)
+		local url = ServersApi .. ((cursor and "&cursor=" .. cursor) or "")
+		local response = game:HttpGet(url)
+		return Http:JSONDecode(response)
+	end
 
-    local serverFound, nextCursor
-    repeat
-        local data = ListServers(nextCursor)
-        -- Фильтрация серверов, чтобы сервер был полным (минимум 8 человек)
-        for _, server in ipairs(data.data) do
-            if server.playing >= 8 then  -- Проверка, что на сервере хотя бы 8 игроков
-                serverFound = server
-                break
-            end
-        end
-        nextCursor = data.nextPageCursor
-    until serverFound
+	local serverFound, nextCursor
+	repeat
+		local data = ListServers(nextCursor)
+		serverFound = data.data[1]
+		nextCursor = data.nextPageCursor
+	until serverFound
 
-    queue_on_teleport([[
+	queue_on_teleport([[
 wait(10)
 loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
-    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceId, serverFound.id, Players.LocalPlayer)
+	game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceId, serverFound.id, Players.LocalPlayer)
 end
 
 local isTeleporting = false
