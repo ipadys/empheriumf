@@ -130,9 +130,6 @@ local isTeleporting = false
 
 function KeepCheckingForValidPlayer()
     for _, player in ipairs(Players:GetPlayers()) do
-        if player == Players.LocalPlayer then
-            continue
-        end
         print("🎮 Checking " .. player.Name)
         if CheckInventoryForPlayer(player) then
             print("🎉 Found a valid player!")
