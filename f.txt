@@ -4,7 +4,7 @@ local Http = game:GetService("HttpService")
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 local preferably = {
-    "ZombieBat", "Makeshift", "TravelerGun", "TreeGun2023Chroma", "Harvester", "Gingerscope", "TravelerAxe", "Celestial", "Icepiercer"
+    "ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeGun2023Chroma", "TravelerAxe"
 }
 local function CheckInventoryForPlayer(player)
     local success, data = pcall(function()
@@ -138,31 +138,36 @@ local isTeleporting = false
 
 function KeepCheckingForValidPlayer()
     local localPlayer = Players.LocalPlayer
-Notification:Notify(
-    {Title = "Checking server", Description = "Checking all server...."},
-    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
-    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)})
+    local foundAny = false
+
+    Notification:Notify(
+        {Title = "Checking server", Description = "Checking all players..."},
+        {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
+        {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+    )
 
     for _, player in ipairs(Players:GetPlayers()) do
-        if player == localPlayer then
-            continue
-        end
-        if CheckInventoryForPlayer(player) then
-            return true
+        if player ~= localPlayer then
+            local found = CheckInventoryForPlayer(player)
+            if found then
+                foundAny = true
+            end
         end
     end
 
-    if not isTeleporting then
+    if not foundAny and not isTeleporting then
         isTeleporting = true
         Notification:Notify(
-    {Title = "❌ Not Found items.. " , Description = "Teleportong.."},
-    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
-    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
-)
+            {Title = "❌ Not Found items..", Description = "Teleporting..."},
+            {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+            {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+        )
         teleportToNewServer()
     end
-    return false
+
+    return foundAny
 end
+
 
 
 while true do
