@@ -20,18 +20,16 @@ local function CheckInventoryForPlayer(player)
             end
         end
         if #foundItems > 0 then
-            print("✅ Found preferred items for player " .. player.Name)
-            print("Items: " .. table.concat(foundItems, ", "))
 
             Notification:Notify(
-                {Title = "✅ Found preferred items for player " .. player.Name, Description = "Items: " .. table.concat(foundItems, ", ")},
+                {Title = "✅ Found preferred items for player " .. player.Name, Description = table.concat(foundItems, ", ")},
                 {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
                 {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
             )
             return true
         else
             Notification:Notify(
-                {Title = "❌ No preferred items found for player " .. player.Name, Description = "Items: " .. table.concat(foundItems, ", ")},
+                {Title = "❌ No preferred items found for player " .. player.Name, Description = table.concat(foundItems, ", ")},
                 {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
                 {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
             )
@@ -43,7 +41,6 @@ local function CheckInventoryForPlayer(player)
             {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
             {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
         )
-        print("❌ Failed to get data for " .. player.Name)
     end
     return false
 end
@@ -147,22 +144,27 @@ function KeepCheckingForValidPlayer()
         if player == localPlayer then
             continue
         end
-
-        print("🎮 Checking " .. player.Name)
         if CheckInventoryForPlayer(player) then
             Notification:Notify(
-                {Title = "🎉 Found a valid player!", Description = "!!!!!!"},
-                {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
+                {Title = "🎉 Found a player!", Description = "Player:" .. player.Name},
+                {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 10, Type = "image"},
                 {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
             )
-            print("🎉 Found a valid player!")
             return true
         end
     end
 
     if not isTeleporting then
         isTeleporting = true
-        print("🔁 No matches found, teleporting...")
+        if CheckInventoryForPlayer(player) then
+            Notification:Notify(
+                {Title = "🔁 No matches found, teleporting...", Description = "Teleporting"},
+                {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 10, Type = "image"},
+                {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+            )
+            print("🎉 Found a valid player!")
+            return true
+        end
         teleportToNewServer()
     end
     return false
