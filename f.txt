@@ -1,6 +1,8 @@
 local ItemDB = require(game:GetService("ReplicatedStorage").Database.Sync.Item)
 local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
+local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 local preferably = {
     "ZombieBat", "Makeshift", "TravelerGun", "TreeGun2023Chroma", "Harvester", "Gingerscope", "TravelerAxe", "Celestial", "Icepiercer"
 }
@@ -14,15 +16,21 @@ local function CheckInventoryForPlayer(player)
 
         for _, itemName in ipairs(preferably) do
             if ownedItems[itemName] then
-                table.insert(foundItems, itemName)
+                table.insert(foundItems, ItemDB[itemName].ItemName)
             end
         end
         if #foundItems > 0 then
             print("✅ Found preferred items for player " .. player.Name)
             print("Items: " .. table.concat(foundItems, ", "))
+
+Notification:Notify(
+    {Title = "✅ Found Player " .. player.Name, Description = "Items: " .. table.concat(foundItems, ", ")},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)})
+
             return true
         else
-            print("❌ No preferred items found for player " .. player.Name)
+        print("❌ No preferred items found for player " .. player.Name)
         end
     else
         print("❌ Failed to get data for " .. player.Name)
@@ -32,9 +40,9 @@ end
 
 local function teleportToNewServer()
 local Config = {
-  MaxStore = 3600,
-  CheckInterval = 2500,
-  TeleportInterval = 1000,
+	MaxStore = 3600,
+	CheckInterval = 2500,
+	TeleportInterval = 1000,
 }
 
 local HttpService = game:GetService("HttpService")
@@ -43,109 +51,123 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 
 if not Player then
-  Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-  Player = Players.LocalPlayer
+	Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+	Player = Players.LocalPlayer
 end
-  local PlaceId = game.PlaceId
-  local JobId = game.JobId
+	local PlaceId = game.PlaceId
+	local JobId = game.JobId
 
-  local RootFolder = "ServerHop"
-  local StorageFile = {RootFolder}/{tostring(PlaceId)}.json
-  local Data = {
-    Start = tick(),
-    Jobs = {},
-  }
+	local RootFolder = "ServerHop"
+	local StorageFile = `{RootFolder}/{tostring(PlaceId)}.json`
+	local Data = {
+		Start = tick(),
+		Jobs = {},
+	}
 
-  if not isfolder(RootFolder) then
-    makefolder(RootFolder)
-  end
+	if not isfolder(RootFolder) then
+		makefolder(RootFolder)
+	end
 
-  if isfile(StorageFile) then
-    local NewData = HttpService:JSONDecode(readfile(StorageFile))
+	if isfile(StorageFile) then
+		local NewData = HttpService:JSONDecode(readfile(StorageFile))
 
-    if tick() - NewData.Start < Config.MaxStore then
-      Data = NewData
-    end
-  end
+		if tick() - NewData.Start < Config.MaxStore then
+			Data = NewData
+		end
+	end
 
-  if not table.find(Data.Jobs, JobId) then
-    table.insert(Data.Jobs, JobId)
-  end
+	if not table.find(Data.Jobs, JobId) then
+		table.insert(Data.Jobs, JobId)
+	end
 
-  writefile(StorageFile, HttpService:JSONEncode(Data))
+	writefile(StorageFile, HttpService:JSONEncode(Data))
 
-  local Servers = {}
-  local Cursor = ""
+	local Servers = {}
+	local Cursor = ""
 
-  while Cursor and #Servers <= 0 and task.wait(Config.CheckInterval / 1000) do
-    local Request = request or HttpService.RequestAsync
-    local RequestSuccess, Response = pcall(Request, {
-      Url = https://games.roblox.com/v1/games/{PlaceId}/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true&cursor{Cursor},
-      Method = "GET",
-    })
+	while Cursor and #Servers <= 0 and task.wait(Config.CheckInterval / 1000) do
+		local Request = request or HttpService.RequestAsync
+		local RequestSuccess, Response = pcall(Request, {
+			Url = `https://games.roblox.com/v1/games/{PlaceId}/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true&cursor{Cursor}`,
+			Method = "GET",
+		})
 
-    if not RequestSuccess then
-      continue
-    end
+		if not RequestSuccess then
+			continue
+		end
 
-    local DecodeSuccess, Body = pcall(HttpService.JSONDecode, HttpService, Response.Body)
+		local DecodeSuccess, Body = pcall(HttpService.JSONDecode, HttpService, Response.Body)
 
-    if not DecodeSuccess or not Body or not Body.data then
-      continue
-    end
+		if not DecodeSuccess or not Body or not Body.data then
+			continue
+		end
 
-    task.spawn(function()
-      for _, Server in pairs(Body.data) do
-        if
-          typeof(Server) ~= "table"
-          or not Server.id
-          or not tonumber(Server.playing)
-          or not tonumber(Server.maxPlayers)
-        then
-          continue
-        end
+		task.spawn(function()
+			for _, Server in pairs(Body.data) do
+				if
+					typeof(Server) ~= "table"
+					or not Server.id
+					or not tonumber(Server.playing)
+					or not tonumber(Server.maxPlayers)
+				then
+					continue
+				end
 
-        if Server.playing < Server.maxPlayers and not table.find(Data.Jobs, Server.id) then
-          table.insert(Servers, 1, Server.id)
-        end
-      end
-    end)
+				if Server.playing < Server.maxPlayers and not table.find(Data.Jobs, Server.id) then
+					table.insert(Servers, 1, Server.id)
+				end
+			end
+		end)
 
-    if Body.nextPageCursor then
-      Cursor = Body.nextPageCursor
-    end
-  end
+		if Body.nextPageCursor then
+			Cursor = Body.nextPageCursor
+		end
+	end
 
-  while #Servers > 0 and task.wait(Config.TeleportInterval / 1000) do
-    local Server = Servers[math.random(1, #Servers)]
+	while #Servers > 0 and task.wait(Config.TeleportInterval / 1000) do
+		local Server = Servers[math.random(1, #Servers)]
           queue_on_teleport([[
-wait(10)
+wait(3)
 loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
-    TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
-  end
+		TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
+	end
 end
 
 local isTeleporting = false
 
 function KeepCheckingForValidPlayer()
+    local localPlayer = Players.LocalPlayer
+Notification:Notify(
+    {Title = "Checking server", Description = "Checking all server...."},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)})
+
     for _, player in ipairs(Players:GetPlayers()) do
-        print("🎮 Checking " .. player.Name)
+        if player == localPlayer then
+            continue
+        end
         if CheckInventoryForPlayer(player) then
-            print("🎉 Found a valid player!")
             return true
         end
     end
-if not isTeleporting then
+
+    if not isTeleporting then
         isTeleporting = true
-        print("🔁 No matches found, teleporting...")
+        Notification:Notify(
+    {Title = "❌ Not Found items.. " , Description = "Teleportong.."},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+)
         teleportToNewServer()
     end
     return false
 end
+
+
 while true do
     if KeepCheckingForValidPlayer() then
         break
     end
-    wait(10)
+    wait(3)
 end
