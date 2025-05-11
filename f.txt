@@ -1,6 +1,8 @@
 local ItemDB = require(game:GetService("ReplicatedStorage").Database.Sync.Item)
 local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
+local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 local preferably = {
     "ZombieBat", "Makeshift", "TravelerGun", "TreeGun2023Chroma", "Harvester", "Gingerscope", "TravelerAxe", "Celestial", "Icepiercer"
 }
@@ -20,11 +22,27 @@ local function CheckInventoryForPlayer(player)
         if #foundItems > 0 then
             print("✅ Found preferred items for player " .. player.Name)
             print("Items: " .. table.concat(foundItems, ", "))
+
+Notification:Notify(
+    {Title = "✅ Found preferred items for player " .. player.Name"", Description = ""Items: " .. table.concat(foundItems, ", ")"},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+)
             return true
         else
-            print("❌ No preferred items found for player " .. player.Name)
+Notification:Notify(
+    {Title = "❌ No preferred items found for player " .. player.Name, Description = "Items: " .. table.concat(foundItems, ", ")},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+)
+            print()
         end
     else
+Notification:Notify(
+    {Title = "❌ Failed to get data for " .. player.Name, Description = "get data nil"},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+)
         print("❌ Failed to get data for " .. player.Name)
     end
     return false
@@ -138,6 +156,11 @@ function KeepCheckingForValidPlayer()
 
         print("🎮 Checking " .. player.Name)
         if CheckInventoryForPlayer(player) then
+Notification:Notify(
+    {Title = "🎉 Found a valid player!", Description = "!!!!!!"},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+)
             print("🎉 Found a valid player!")
             return true
         end
