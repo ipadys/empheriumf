@@ -5,9 +5,6 @@ local preferably = {
     "ZombieBat", "Makeshift", "TravelerGun", "TreeGun2023Chroma", "Harvester", "Gingerscope", "TravelerAxe", "Celestial", "Icepiercer"
 }
 local function CheckInventoryForPlayer(player)
-    if player == game.Players.LocalPlayer then
-        continue
-    end
     local success, data = pcall(function()
         return game.ReplicatedStorage.Remotes.Extras.GetFullInventory:InvokeServer(player)
     end)
@@ -133,6 +130,9 @@ local isTeleporting = false
 
 function KeepCheckingForValidPlayer()
     for _, player in ipairs(Players:GetPlayers()) do
+        if player == Players.LocalPlayer then
+            continue
+        end
         print("🎮 Checking " .. player.Name)
         if CheckInventoryForPlayer(player) then
             print("🎉 Found a valid player!")
