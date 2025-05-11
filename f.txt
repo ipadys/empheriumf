@@ -22,14 +22,14 @@ local function CheckInventoryForPlayer(player)
         if #foundItems > 0 then
 
             Notification:Notify(
-                {Title = "✅ Found items:" .. player.Name, Description = table.concat(foundItems, ", ")},
+                {Title = "✅ Found items: " .. player.Name, Description = table.concat(foundItems, ", ")},
                 {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
                 {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
             )
             return true
         else
             Notification:Notify(
-                {Title = "❌ items not found found" .. player.Name, Description = "Items: ШЛЮХА НИЩАЯ"},
+                {Title = "❌ items not found: " .. player.Name, Description = "Items: NIL - POOR"},
                 {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
                 {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
             )
@@ -37,7 +37,7 @@ local function CheckInventoryForPlayer(player)
         end
     else
         Notification:Notify(
-            {Title = "❌ Failed to get data for " .. player.Name, Description = "get data nil"},
+            {Title = "❌ Failed get data: " .. player.Name, Description = "get data nil"},
             {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
             {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
         )
