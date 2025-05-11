@@ -37,7 +37,7 @@ local function CheckInventoryForPlayer(player)
         end
     else
         Notification:Notify(
-            {Title = "❌ Failed get data: " .. player.Name, Description = "get data nil"},
+            {Title = "❌ Failed get data: ", Description = "get data nil"},
             {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 2, Type = "image"},
             {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
         )
