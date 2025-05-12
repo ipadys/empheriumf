@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
+local ForceTeleport = true
 local preferably = {
     "ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeKnife2023", "VampireAxe", "Bauble", "BaubleChroma", "TreeGun2023Chroma", "TravelerAxe"
 }
@@ -41,8 +42,8 @@ end
 local function teleportToNewServer()
 local Config = {
 	MaxStore = 3600,
-	CheckInterval = 2500,
-	TeleportInterval = 1000,
+	CheckInterval = 800,
+	TeleportInterval = 200,
 }
 
 local HttpService = game:GetService("HttpService")
@@ -155,10 +156,11 @@ function KeepCheckingForValidPlayer()
         end
     end
 
-    if not foundAny and not isTeleporting then
+    -- 💥 Если принудительный хоп включен, телепортируем даже при найденных
+    if (not foundAny or ForceTeleport) and not isTeleporting then
         isTeleporting = true
         Notification:Notify(
-            {Title = "❌ Not Found items..", Description = "Teleporting..."},
+            {Title = "🚀 Hopping server", Description = ForceTeleport and "Force teleporting..." or "No items found, teleporting..."},
             {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
             {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
         )
