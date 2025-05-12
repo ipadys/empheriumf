@@ -4,7 +4,7 @@ local Http = game:GetService("HttpService")
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 local preferably = {
-    "ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeGun2023Chroma", "TravelerAxe"
+    "ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeKnife2023", "VampireAxe", "Bauble", "BaubleChroma", "TreeGun2023Chroma", "TravelerAxe"
 }
 local function CheckInventoryForPlayer(player)
     local success, data = pcall(function()
