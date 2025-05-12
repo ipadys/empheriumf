@@ -6,28 +6,6 @@ local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/
 
 
 
-local HttpService = game:GetService("HttpService")
-local PlaceId = game.PlaceId
-local JobId = game.JobId
-local RootFolder = "ServerHop"
-local VisitFile = string.format("%s/%s_visited.json", RootFolder, PlaceId)
-if not isfolder(RootFolder) then
-	makefolder(RootFolder)
-end
-local visitedData = {}
-if isfile(VisitFile) then
-	visitedData = HttpService:JSONDecode(readfile(VisitFile))
-end
-local wasVisited = table.find(visitedData, JobId) ~= nil
-
-if not wasVisited then
-	table.insert(visitedData, JobId)
-	writefile(VisitFile, HttpService:JSONEncode(visitedData))
-end
-
-
-
-
 
 
 
@@ -158,7 +136,7 @@ local function teleportToNewServer()
 		local Server = Servers[math.random(1, #Servers)]
 
 		queue_on_teleport([[
-    wait(4)
+    wait(3)
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
 		TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
@@ -167,15 +145,6 @@ end
 
 function KeepCheckingForValidPlayer()
 	local localPlayer = Players.LocalPlayer
-	if wasVisited then
-		Notification:Notify(
-			{Title = "⏩ Already Visited", Description = "Skipping check, hopping server..."},
-			{OutlineColor = Color3.fromRGB(80, 80, 80), Time = 5, Type = "image"},
-			{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 200, 0)}
-		)
-		teleportToNewServer()
-		return false
-	end
 
 	Notification:Notify(
 		{Title = "🔍 Checking server", Description = "Checking all players..."},
