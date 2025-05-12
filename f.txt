@@ -3,82 +3,57 @@ local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
-local HttpService = game:GetService("HttpService")
-
-local PlaceId = game.PlaceId
-local JobId = game.JobId
-local RootFolder = "ServerHop"
-local VisitFile = `{RootFolder}/{PlaceId}_visited.json`
-if not isfolder(RootFolder) then
-	makefolder(RootFolder)
-end
-local wasVisited = false
-if isfile(VisitFile) then
-	local visitedData = HttpService:JSONDecode(readfile(VisitFile))
-	if table.find(visitedData, JobId) then
-		wasVisited = true
-	end
-end
-local currentVisited = {}
-if isfile(VisitFile) then
-	currentVisited = HttpService:JSONDecode(readfile(VisitFile))
-end
-if not table.find(currentVisited, JobId) then
-	table.insert(currentVisited, JobId)
-	writefile(VisitFile, HttpService:JSONEncode(currentVisited))
-end
-
-
 local preferably = {
-	"ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeKnife2023", "VampireAxe", "Bauble", "BaubleChroma", "TreeGun2023Chroma", "TravelerAxe"
+    "ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeKnife2023", "VampireAxe", "Bauble", "BaubleChroma", "TreeGun2023Chroma", "TravelerAxe"
 }
 local function CheckInventoryForPlayer(player)
-	local success, data = pcall(function()
-		return game.ReplicatedStorage.Remotes.Extras.GetFullInventory:InvokeServer(player)
-	end)
-	if success and data and data.Weapons and data.Weapons.Owned then
-		local ownedItems = data.Weapons.Owned
-		local foundItems = {}
+    local success, data = pcall(function()
+        return game.ReplicatedStorage.Remotes.Extras.GetFullInventory:InvokeServer(player)
+    end)
+    if success and data and data.Weapons and data.Weapons.Owned then
+        local ownedItems = data.Weapons.Owned
+        local foundItems = {}
 
-		for _, itemName in ipairs(preferably) do
-			if ownedItems[itemName] then
-				table.insert(foundItems, ItemDB[itemName].ItemName)
-			end
-		end
-		if #foundItems > 0 then
-			print("✅ Found preferred items for player " .. player.Name)
-			print("Items: " .. table.concat(foundItems, ", "))
+        for _, itemName in ipairs(preferably) do
+            if ownedItems[itemName] then
+                table.insert(foundItems, ItemDB[itemName].ItemName)
+            end
+        end
+        if #foundItems > 0 then
+            print("✅ Found preferred items for player " .. player.Name)
+            print("Items: " .. table.concat(foundItems, ", "))
 
-			Notification:Notify(
-				{Title = "✅ Found Player " .. player.Name, Description = "Items: " .. table.concat(foundItems, ", ")},
-				{OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
-				{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)})
+Notification:Notify(
+    {Title = "✅ Found Player " .. player.Name, Description = "Items: " .. table.concat(foundItems, ", ")},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)})
 
-			return true
-		else
-			print("❌ No preferred items found for player " .. player.Name)
-		end
-	else
-		print("❌ Failed to get data for " .. player.Name)
-	end
-	return false
+            return true
+        else
+        print("❌ No preferred items found for player " .. player.Name)
+        end
+    else
+        print("❌ Failed to get data for " .. player.Name)
+    end
+    return false
 end
+
 local function teleportToNewServer()
-	local Config = {
-		MaxStore = 3600,
-		CheckInterval = 800,
-		TeleportInterval = 200,
-	}
+local Config = {
+	MaxStore = 3600,
+	CheckInterval = 2500,
+	TeleportInterval = 1000,
+}
 
-	local HttpService = game:GetService("HttpService")
-	local TeleportService = game:GetService("TeleportService")
-	local Players = game:GetService("Players")
-	local Player = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 
-	if not Player then
-		Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-		Player = Players.LocalPlayer
-	end
+if not Player then
+	Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+	Player = Players.LocalPlayer
+end
 	local PlaceId = game.PlaceId
 	local JobId = game.JobId
 
@@ -151,7 +126,7 @@ local function teleportToNewServer()
 
 	while #Servers > 0 and task.wait(Config.TeleportInterval / 1000) do
 		local Server = Servers[math.random(1, #Servers)]
-		queue_on_teleport([[
+          queue_on_teleport([[
 wait(3)
 loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
@@ -162,48 +137,42 @@ end
 local isTeleporting = false
 
 function KeepCheckingForValidPlayer()
-	local localPlayer = Players.LocalPlayer
-	if wasVisited then
-		Notification:Notify(
-			{Title = "⏩ Already Visited", Description = "Skipping check, hopping server..."},
-			{OutlineColor = Color3.fromRGB(80, 80, 80), Time = 5, Type = "image"},
-			{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 200, 0)}
-		)
-		teleportToNewServer()
-		return false
-	end
-	Notification:Notify(
-		{Title = "🔍 Checking server", Description = "Checking all players..."},
-		{OutlineColor = Color3.fromRGB(80, 80, 80), Time = 15, Type = "image"},
-		{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
-	)
-	local foundAny = false
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= localPlayer then
-			local found = CheckInventoryForPlayer(player)
-			if found then
-				foundAny = true
-			end
-		end
-	end
-	if foundAny then
-		return true
-	end
-	Notification:Notify(
-		{Title = "🚀 Hopping server", Description = "No items found, teleporting..."},
-		{OutlineColor = Color3.fromRGB(80, 80, 80), Time = 3, Type = "image"},
-		{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
-	)
+    local localPlayer = Players.LocalPlayer
+    local foundAny = false
 
-	teleportToNewServer()
-	return false
+    Notification:Notify(
+        {Title = "Checking server", Description = "Checking all players..."},
+        {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
+        {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+    )
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            local found = CheckInventoryForPlayer(player)
+            if found then
+                foundAny = true
+            end
+        end
+    end
+
+    if not foundAny and not isTeleporting then
+        isTeleporting = true
+        Notification:Notify(
+            {Title = "❌ Not Found items..", Description = "Teleporting..."},
+            {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
+            {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+        )
+        teleportToNewServer()
+    end
+
+    return foundAny
 end
 
 
 
 while true do
-	if KeepCheckingForValidPlayer() then
-		break
-	end
-	wait(3)
+    if KeepCheckingForValidPlayer() then
+        break
+    end
+    wait(3)
 end
