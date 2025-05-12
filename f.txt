@@ -134,34 +134,47 @@ local function teleportToNewServer()
 	end
 end
 
-local isTeleporting = false
 function KeepCheckingForValidPlayer()
-	local localPlayer = Players.LocalPlayer
-	local foundAny = false
-	Notification:Notify(
-		{Title = "Checking server", Description = "Checking all players..."},
-		{OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
-		{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
-	)
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= localPlayer then
-			local found = CheckInventoryForPlayer(player)
-			if found then
-				foundAny = true
-			end
-		end
-	end
-	if not foundAny and not isTeleporting then
-		isTeleporting = true
-		Notification:Notify(
-			{Title = "❌ Not Found items..", Description = "Teleporting..."},
-			{OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
-			{Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
-		)
-		teleportToNewServer()
-	end
-	return foundAny
+    local localPlayer = Players.LocalPlayer
+    if wasVisited then
+        Notification:Notify(
+            {Title = "⏩ Already Visited", Description = "Skipping check, hopping server..."},
+            {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 5, Type = "image"},
+            {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 200, 0)}
+        )
+        teleportToNewServer()
+        return false
+    end
+
+    Notification:Notify(
+        {Title = "🔍 Checking server", Description = "Checking all players..."},
+        {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 15, Type = "image"},
+        {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+    )
+
+    local foundAny = false
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            local found = CheckInventoryForPlayer(player)
+            if found then
+                foundAny = true
+            end
+        end
+    end
+    if foundAny then
+        return true
+    end
+    Notification:Notify(
+        {Title = "🚀 Hopping server", Description = "No items found, teleporting..."},
+        {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 3, Type = "image"},
+        {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+    )
+
+    teleportToNewServer()
+    return false
 end
+
 while true do
 	if KeepCheckingForValidPlayer() then
 		break
