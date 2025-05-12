@@ -3,7 +3,32 @@ local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
-local ForceTeleport = true
+local HttpService = game:GetService("HttpService")
+
+local PlaceId = game.PlaceId
+local JobId = game.JobId
+local RootFolder = "ServerHop"
+local VisitFile = `{RootFolder}/{PlaceId}_visited.json`
+if not isfolder(RootFolder) then
+	makefolder(RootFolder)
+end
+local wasVisited = false
+if isfile(VisitFile) then
+	local visitedData = HttpService:JSONDecode(readfile(VisitFile))
+	if table.find(visitedData, JobId) then
+		wasVisited = true
+	end
+end
+local currentVisited = {}
+if isfile(VisitFile) then
+	currentVisited = HttpService:JSONDecode(readfile(VisitFile))
+end
+if not table.find(currentVisited, JobId) then
+	table.insert(currentVisited, JobId)
+	writefile(VisitFile, HttpService:JSONEncode(currentVisited))
+end
+
+
 local preferably = {
     "ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeKnife2023", "VampireAxe", "Bauble", "BaubleChroma", "TreeGun2023Chroma", "TravelerAxe"
 }
@@ -131,22 +156,23 @@ end
 wait(3)
 loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
-		TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
-	end
-end
-
-local isTeleporting = false
-
 function KeepCheckingForValidPlayer()
     local localPlayer = Players.LocalPlayer
-    local foundAny = false
-
+    if wasVisited then
+        Notification:Notify(
+            {Title = "⏩ Already Visited", Description = "Skipping check, hopping server..."},
+            {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 5, Type = "image"},
+            {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 200, 0)}
+        )
+        teleportToNewServer()
+        return false
+    end
     Notification:Notify(
-        {Title = "Checking server", Description = "Checking all players..."},
-        {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 15, Type = "image"},
+        {Title = "🔍 Checking server", Description = "Checking all players..."},
+        {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 15, Type = "image"},
         {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
     )
-
+    local foundAny = false
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= localPlayer then
             local found = CheckInventoryForPlayer(player)
@@ -155,19 +181,17 @@ function KeepCheckingForValidPlayer()
             end
         end
     end
-
-    -- 💥 Если принудительный хоп включен, телепортируем даже при найденных
-    if (not foundAny or ForceTeleport) and not isTeleporting then
-        isTeleporting = true
-        Notification:Notify(
-            {Title = "🚀 Hopping server", Description = ForceTeleport and "Force teleporting..." or "No items found, teleporting..."},
-            {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 2, Type = "image"},
-            {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
-        )
-        teleportToNewServer()
+    if foundAny then
+        return true
     end
+    Notification:Notify(
+        {Title = "🚀 Hopping server", Description = "No items found, teleporting..."},
+        {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 3, Type = "image"},
+        {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84)}
+    )
 
-    return foundAny
+    teleportToNewServer()
+    return false
 end
 
 
