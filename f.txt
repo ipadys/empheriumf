@@ -181,5 +181,5 @@ while true do
 	if KeepCheckingForValidPlayer() then
 		break
 	end
-	wait(5)
+	wait(10)
 end
