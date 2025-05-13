@@ -48,7 +48,7 @@ local function teleportToNewServer()
 	local Config = {
 		MaxStore = 3600,
 		CheckInterval = 2500,
-		TeleportInterval = 100,
+		TeleportInterval = 1000,
 	}
 
 	local HttpService = game:GetService("HttpService")
@@ -134,7 +134,7 @@ local function teleportToNewServer()
 		local Server = Servers[math.random(1, #Servers)]
 
 		queue_on_teleport([[
-    wait(10)
+    wait(2)
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
 		TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
