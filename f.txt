@@ -1,17 +1,15 @@
 local ItemDB = require(game:GetService("ReplicatedStorage").Database.Sync.Item)
 local Players = game:GetService("Players")
 local Http = game:GetService("HttpService")
+local LocalizationService = game:GetService("LocalizationService")
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
-
-
-
-
-
-
-
-
-
+local function isRussian(player)
+	local success, region = pcall(function()
+		return LocalizationService:GetCountryRegionForPlayerAsync(player)
+	end)
+	return success and region == "RU"
+end
 local preferably = {
 	"ZombieBat", "Sorry", "Makeshift", "Icepiercer", "Harvester", "Gingerscope", "TravelerGun", "TreeKnife2023", "VampireAxe", "Bauble", "BaubleChroma", "TreeGun2023Chroma", "TravelerAxe"
 }
@@ -154,14 +152,18 @@ function KeepCheckingForValidPlayer()
 
 	local foundAny = false
 
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= localPlayer then
-			local found = CheckInventoryForPlayer(player)
-			if found then
-				foundAny = true
-			end
+for _, player in ipairs(Players:GetPlayers()) do
+	if player ~= localPlayer then
+		if isRussian(player) then
+			print("🌍 Русский игрок найден: " .. player.Name)
+		end
+		local found = CheckInventoryForPlayer(player)
+		if found then
+			foundAny = true
 		end
 	end
+end
+
 	if foundAny then
 		return true
 	end
