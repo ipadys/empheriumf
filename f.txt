@@ -155,7 +155,7 @@ function KeepCheckingForValidPlayer()
 for _, player in ipairs(Players:GetPlayers()) do
 	if player ~= localPlayer then
 		if isRussian(player) then
-			print("🌍 Русский игрок найден: " .. player.Name)
+			print("🌍 RUSSIA: " .. player.Name)
 		end
 		local found = CheckInventoryForPlayer(player)
 		if found then
@@ -177,9 +177,8 @@ end
 	return false
 end
 
-while true do
-	if KeepCheckingForValidPlayer() then
-		break
+task.spawn(function()
+	while not KeepCheckingForValidPlayer() do
+		wait(5)
 	end
-	wait(10)
-end
+end)
