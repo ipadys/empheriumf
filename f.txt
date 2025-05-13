@@ -134,7 +134,7 @@ local function teleportToNewServer()
 		local Server = Servers[math.random(1, #Servers)]
 
 		queue_on_teleport([[
-    wait(2)
+    wait(5)
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ipadys/empheriumf/refs/heads/main/f.txt'))()
     ]])
 		TeleportService:TeleportToPlaceInstance(PlaceId, Server, Player)
